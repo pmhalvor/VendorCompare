@@ -22,18 +22,23 @@ namespace vendor
         {
             log.LogInformation("Vendor File In triggered. Attemping upload of file from body of API call...");
 
+            // Create blob operator working on in-blob
             CommonBlob blobOps = new CommonBlob("in");
+
+            // Store binary file from request body as stream
             Stream data = req.Body;
 
+            // Create unique file name as combo of datetime and Guid
             DateTime _date = DateTime.Now;
             var _dateString = _date.ToString("dd-MM-yyyy");
             string fileId = Guid.NewGuid().ToString();
             string fileName = $"{_dateString}-{fileId}.xlsx";
 
+            // Address where blob can be found at
             Uri retUri = await blobOps.uploadFileToBlob(data, fileName);
-
             Console.WriteLine(retUri.AbsoluteUri);
 
+            // Return id of file in blob 
             return new OkObjectResult( new {fileId = fileId});
         }
     }
@@ -44,11 +49,12 @@ namespace vendor
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log){
-                log.LogInformation("C# HTTP trigger function processed a request.");
+                log.LogInformation("C# Blob to File Function processed a request.");
 
                 // Get id and path from query parameters
                 string id = req.Query["id"] + ".xlsx";
                 string path = req.Query["path"];
+
                 // Set default in case no parameters are given (only works for me!)
                 if(id==".xlsx"){
                     // No id in parameter should return blank file.
@@ -68,22 +74,17 @@ namespace vendor
                 // Pull blob with given id from container. If none match, null is returned
                 CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(id);
 
-                // return new FileContentResult(binaryfile.ToArray(), cloudBlockBlob.Properties.ContentType);
-
                 // Frodes method of returning a binary stream 
-                // Task<IActionResult> task = blobOps.getListAsStream(id);
-                // return task;
+                if(path==null){
+                    log.LogInformation("Returning file as binary stream to API client");
+                    await blobOps.getListAsStream(id);
+                }
 
-                // One way of downloading directly
+                // Download file directly from blob to API client machine
                 await cloudBlockBlob.DownloadToFileAsync($"{path}{id}", FileMode.Create);
- 
-                // Downloading first as stream, then converting to file in C# (extra steps for more usability?)
-                // return new FileStreamResult(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){  
-                //    FileDownloadName = id
-                // };
 
-                // Could return path which file ended up in as plain text
-                return new OkObjectResult($"File downloaded at path: {path}{id}");
+                // Return destination file was downloaded to
+                return new OkObjectResult($"File downloaded. Can be found at path: {path}{id}");
             }
     }
 
