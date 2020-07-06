@@ -62,7 +62,7 @@ namespace vendor
                 }
                 if(path==null){
                     // Automatically sets download path to Downloads 
-                    path = new KnownFolder(KnownFolderType.Downloads).Path;
+                    path = new KnownFolder(KnownFolderType.Downloads).Path+"\\";
                 }
 
                 // Create blob operator working on 'out' blob
@@ -106,10 +106,13 @@ namespace vendor
             }
             blobClient = getBlobConnection();
 
-            // Get and interpreter return value
-            getBlobContainer();
+            
+            // Get and interpret return value
+            var task = getBlobContainer();
+
             // Only set if created
-            setBlobContainerPermissions();
+            var permissinTask = setBlobContainerPermissions();
+
         }
 
         public async Task<IActionResult> getListAsStream(string id){
