@@ -39,7 +39,8 @@ namespace vendor
             Console.WriteLine(retUri.AbsoluteUri);
 
             // Return id of file in blob 
-            return new OkObjectResult( new {fileId = fileId});
+            var blobname = $"{_dateString}{fileId}";
+            return new OkObjectResult( new {fileId = blobname});
         }
     }
 
@@ -96,7 +97,6 @@ namespace vendor
         CloudBlobClient blobClient;
         CloudBlobContainer cloudBlobContainer;
 
-
         public CommonBlob(string inOrOut)
         {
             if(inOrOut=="in"){
@@ -106,13 +106,11 @@ namespace vendor
             }
             blobClient = getBlobConnection();
 
-            
             // Get and interpret return value
             var task = getBlobContainer();
 
             // Only set if created
             var permissinTask = setBlobContainerPermissions();
-
         }
 
         public async Task<IActionResult> getListAsStream(string id){
