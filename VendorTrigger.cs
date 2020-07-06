@@ -46,33 +46,44 @@ namespace vendor
             ILogger log){
                 log.LogInformation("C# HTTP trigger function processed a request.");
 
-                // Get id from query parameters
+                // Get id and path from query parameters
                 string id = req.Query["id"] + ".xlsx";
-
-                //                 string path = req.Query["path"];
+                string path = req.Query["path"];
                 // Set default in case no parameters are given (only works for me!)
                 if(id==".xlsx"){
+                    // No id in parameter should return blank file.
                     id = "download.xlsx";
                 }
-                // if(path==null){
-                //     path = "C:/Users/perha/Downloads/";
-                //     path = new KnownFolder(KnownFolderType.Downloads).Path;
-                // }
+                if(path==null){
+                    // Automatically sets download path to Downloads 
+                    path = new KnownFolder(KnownFolderType.Downloads).Path;
+                }
 
-                // Create instance of our blob container
+                // Create blob operator working on 'out' blob
                 CommonBlob blobOps = new CommonBlob("out");
-                CloudBlobContainer cloudBlobContainer = blobOps.getLocalCloudBlobContainer();
-                CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(id);
-            
-                // Pull file with id given in query from blob container
-                // Stream file = blobOps.getBankruptList(id);
 
-                // This should download the file in the browser calling the API
+                // Bring container instance into this scope
+                CloudBlobContainer cloudBlobContainer = blobOps.getLocalCloudBlobContainer();
+
+                // Pull blob with given id from container. If none match, null is returned
+                CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(id);
+
+                // return new FileContentResult(binaryfile.ToArray(), cloudBlockBlob.Properties.ContentType);
+
+                // Frodes method of returning a binary stream 
+                // Task<IActionResult> task = blobOps.getListAsStream(id);
+                // return task;
+
+                // One way of downloading directly
+                await cloudBlockBlob.DownloadToFileAsync($"{path}{id}", FileMode.Create);
+ 
+                // Downloading first as stream, then converting to file in C# (extra steps for more usability?)
                 // return new FileStreamResult(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){  
                 //    FileDownloadName = id
                 // };
-                // System.Diagnostics.Process.Start($"{path}{id}");
-                return null;
+
+                // Could return path which file ended up in as plain text
+                return new OkObjectResult($"File downloaded at path: {path}{id}");
             }
     }
 
@@ -100,13 +111,18 @@ namespace vendor
             setBlobContainerPermissions();
         }
 
-        public async Stream getBankruptList(string id){
+        public async Task<IActionResult> getListAsStream(string id){
+            // Pull object with this id from out blob
             CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(id);
-            Stream file = new MemoryStream();
-            cloudBlockBlob.DownloadToStreamAsync(file);
-            //cloudBlockBlob.DownloadToStreamAsync(file);
-            //cloudBlockBlob.DownloadToFileAsync($"{path}{id}", FileMode.Create);
-            return file;
+
+            // New stream instance which file will be downloaded to
+            MemoryStream file = new MemoryStream();
+
+            // Download file as stream from blob
+            await cloudBlockBlob.DownloadToStreamAsync(file);
+
+            // Return stream as binary data for robot to interpret 
+            return new FileContentResult(file.ToArray(), cloudBlockBlob.Properties.ContentType);
         }
 
         public CloudBlobContainer getLocalCloudBlobContainer(){
