@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.Storage;
-using Syroot.Windows.IO;
+//using Syroot.Windows.IO;
 
 
 namespace vendor
@@ -63,7 +63,7 @@ namespace vendor
                 }
                 if(path==null){
                     // Automatically sets download path to Downloads 
-                    path = new KnownFolder(KnownFolderType.Downloads).Path+"\\";
+                    //path = new KnownFolder(KnownFolderType.Downloads).Path+"\\";
                 }
 
                 // Create blob operator working on 'out' blob
@@ -91,7 +91,8 @@ namespace vendor
 
     class CommonBlob
     {
-        string blobConnectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+        // string blobConnectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+        string blobConnectionString = "DefaultEndpointsProtocol=https;AccountName=vendorcomparison;AccountKey=jF5PuPFgaNzc+RazIvrecDQdsOaMXoROeou+e7vom23NdOx0HY9l8NnS9ScMVWK76iFZrLN61ARA652RL5++gg==;EndpointSuffix=core.windows.net";
         string blobContainerName;
         CloudStorageAccount blobStorageAccount;
         CloudBlobClient blobClient;
