@@ -39,8 +39,8 @@ namespace vendor
             Console.WriteLine(retUri.AbsoluteUri);
 
             // Return id of file in blob 
-            var blobname = $"{_dateString}{fileId}";
-            return new OkObjectResult( new {fileId = blobname});
+            var blobname = $"{_dateString}-{fileId}";
+            return new OkObjectResult( new {fileId = fileId});
         }
     }
 
@@ -53,7 +53,7 @@ namespace vendor
                 log.LogInformation("C# Blob to File Function processed a request.");
 
                 // Get id and path from query parameters
-                string id = req.Query["id"] + ".xlsx";
+                string id = req.Query["id"];
                 string path = req.Query["path"];
 
                 // Set default in case no parameters are given (only works for me!)
