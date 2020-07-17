@@ -40,7 +40,7 @@ namespace vendor
 
             // Return id of file in blob 
             var blobname = $"{_dateString}-{fileId}";
-            return new OkObjectResult( new {fileId = fileId});
+            return new OkObjectResult( new {fileId = fileName});
         }
     }
 
